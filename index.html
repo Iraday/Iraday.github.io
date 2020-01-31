@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="UTF-8">
+    <title>Audio player HTML5</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="css/AudioPlayer.css">
+<style>
+	.button5 {
+	  background-color: #555555; 
+	  border: none;
+	  color: white;
+	  padding: 1vw 1vw;
+	  text-align: center;
+	  text-decoration: none;
+	  display: inline-block;
+	  font-size: 2vw;
+	  cursor: pointer;
+	}
+    #player{
+        position: relative;
+        max-width: 700px;
+        height: 500px;
+        border: solid 1px gray;
+    }
+</style>
+  
+</head>
+      
+ <body>
+
+<div class="icon-bar">
+	<div id='random play' class='container1' onclick="flipRandomStatus()">
+		<div id='random play text' class='box box1'>random is on</div>
+	</div>
+	<div id='export' class='container1' >
+		<div id='export text' class='box box1'>export Playlist in JSON</div>
+	</div>
+	<div id='quick save' class='container1' >
+		<div id='quick save text' class='box box1'>quick save (no export)</div>
+	</div>
+
+	<div id='current playing' class='container1' >
+		<div id='current playing text' class='box box1'>go to current playing song</div>
+	</div>
+ </div>
+   
+<div class="icon-bar">
+	<div id='upvote' class='container3' style="float: left;">
+		<div id='upvote text' class='box box1'>upvote current song</div>
+	</div>
+	<div id='downvote' class='container4' style="float: right;">
+		<div id='downvote text' class='box box1'>downvote current song</div>
+	</div>
+ </div>
+ 
+ <div class="icon-bar">
+	<div id='playlastsong' class='container5' style="float: left;">
+		<div id='playlastsong text' class='box box1'>play last song</div>
+	</div>
+	
+	<div id='filterUnpopularSong' class='container6' style="float: left;">
+		<div id='filterUnpopularSong text' class='box box1'>Only Play Songs >= This Rating Value:</div>
+	</div>	
+	
+	<input type="number" id="filterNumber" value="5" style="float: left;">
+
+	
+ </div>
+ 
+  <div class="icon-bar">
+	<div id='playlastsong2' class='container70' style="float: left;">
+		<div id='playlastsong text2' class='box box1'>play last song w/o jump to end</div>
+	</div>
+	
+ </div>
+
+<form id="jsonFile" name="jsonFile" enctype="multipart/form-data" method="post">
+
+<a id="downloadAnchorElem1" style="display:none"></a>
+ <fieldset class="load_container">
+    <p><input type='file' id='fileinput1' style="float: center;">
+    <input type='button' id='btnLoad1' value='Load' onclick='loadFile1();' style="float: right;"></p>
+  </fieldset>
+
+</form> 
+
+
+ <div class="icon-bar">
+ <p>
+ <button class="button button5" onclick="window.location = 'about:home';">Blank Page</button>
+ 	<div id='playorpause' class='container5' style="float: left;" onclick="flipPlayStatus();">
+		<div id='playorpause text' class='box box1'>Play Off</div>
+ 	</div>	
+ 	<div id='nextsong' class='container5' style="float: left;">
+		<div id='nextsong text' class='box box1'>next song</div>
+ 	</div>	
+ 	<div id='prevsong' class='container5' style="float: left;">
+		<div id='prevsong text' class='box box1'>prev song</div>
+ 	</div>	
+ 	<div id='repeatsong' class='container5' style="float: left;" onclick="flipRepeatStatus();">
+		<div id='repeatsong text' class='box box1'>Repeat Off</div>
+ 	</div>	
+<p/>	
+ </div>
+<p><p/>
+
+
+
+  
+      <!-- Audio player container-->
+     <div id='player'></div>
+
+
+<p><p/>
+
+
+ <div class="icon-bar">
+	<div id='playlastsong1' class='container7' style="float: left;">
+		<div id='playlastsong text1' class='box box1'>play last song w/o jump to end</div>
+	</div>
+	<div id='current playing1' class='container8' >
+		<div id='current playing text1' class='box box1'>go to current playing song</div>
+	</div>		
+	<div id='go to top' class='container9' >
+		<div id='go to top text' class='box box1'>go to top</div>
+	</div>		
+ </div>
+ 
+<div class="icon-bar">
+	<div id='random play1' class='container10' onclick="flipRandomStatus()">
+		<div id='random play text1' class='box box1'>random is on</div>
+	</div>
+	<div id='export1' class='container10' >
+		<div id='export text1' class='box box1'>export Playlist in JSON</div>
+	</div>
+	<div id='quick save1' class='container10' >
+		<div id='quick save text1' class='box box1'>quick save (no export)</div>
+	</div>
+
+ </div>
+
+<form id="jsonFile" name="jsonFile" enctype="multipart/form-data" method="post">
+
+<a id="downloadAnchorElem" style="display:none"></a>
+ <fieldset class="load_container">
+    <h2>Import Playlist in JSON</h2>
+    <p><input type='file' id='fileinput' style="float: center;">
+    <input type='button' id='btnLoad' value='Load' onclick='loadFile();' style="float: right;"></p>
+  </fieldset>
+
+</form>
+
+<p><button class="button button5" onclick="window.location = 'about:home';">Blank Page</button><p/>
+
+<script type="text/javascript" >
+	Element.prototype.remove = function() {
+		this.parentElement.removeChild(this);
+	}
+	NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
+		for(var i = this.length - 1; i >= 0; i--) {
+			if(this[i] && this[i].parentElement) {
+				this[i].parentElement.removeChild(this[i]);
+			}
+		}
+	}
+	
+	
+  function loadFile() {
+    var input, file, fr;
+
+    if (typeof window.FileReader !== 'function') {
+      alert("The file API isn't supported on this browser yet.");
+      return;
+    }
+
+    input = document.getElementById('fileinput');
+    if (!input) {
+      alert("Um, couldn't find the fileinput element.");
+    }
+    else if (!input.files) {
+      alert("This browser doesn't seem to support the `files` property of file inputs.");
+    }
+    else if (!input.files[0]) {
+      alert("Please select a file before clicking 'Load'");
+    }
+    else {
+      file = input.files[0];
+      fr = new FileReader();
+      fr.onload = receivedText;
+      fr.readAsText(file);
+    }
+
+    function receivedText(e) {
+	  
+      let lines = e.target.result;
+      var newArr = JSON.parse(lines); 
+		AP.destroy();
+		//playerold=document.getElementById('pl');
+		//playerold.remove();
+		console.log(newArr);
+		compare =[
+                {'icon': iconImage, 'title': 'Try Everything', 'file': 'test/try-everything.mp3', 'score':1,},
+                {'icon': iconImage, 'title': 'Let It Go', 'file': 'test/let-it-go.mp3', 'score':1,},
+          ];
+		console.log(compare)
+        AP.init({
+            container:'#player',//a string containing one CSS selector
+            volume   : 0.1,
+            autoPlay : true,
+            notification: false,
+            playList:  newArr
+        });
+		console.log("initation finished");
+    }
+  }
+  
+  function loadFile1() {
+    var input, file, fr;
+
+    if (typeof window.FileReader !== 'function') {
+      alert("The file API isn't supported on this browser yet.");
+      return;
+    }
+
+    input = document.getElementById('fileinput1');
+    if (!input) {
+      alert("Um, couldn't find the fileinput element.");
+    }
+    else if (!input.files) {
+      alert("This browser doesn't seem to support the `files` property of file inputs.");
+    }
+    else if (!input.files[0]) {
+      alert("Please select a file before clicking 'Load'");
+    }
+    else {
+      file = input.files[0];
+      fr = new FileReader();
+      fr.onload = receivedText1;
+      fr.readAsText(file);
+    }
+
+    function receivedText1(e) {
+	  
+      let lines = e.target.result;
+      var newArr = JSON.parse(lines); 
+		AP.destroy();
+		//playerold=document.getElementById('pl');
+		//playerold.remove();
+		console.log(newArr);
+		compare =[
+                {'icon': iconImage, 'title': 'Try Everything', 'file': 'test/try-everything.mp3', 'score':1,},
+                {'icon': iconImage, 'title': 'Let It Go', 'file': 'test/let-it-go.mp3', 'score':1,},
+          ];
+		console.log(compare)
+        AP.init({
+            container:'#player',//a string containing one CSS selector
+            volume   : 0.1,
+            autoPlay : true,
+            notification: false,
+            playList:  newArr
+        });
+		console.log("initation finished");
+    }
+  }
+</script>
+
+    <!-- Audio player js begin-->
+
+ <script src="js/AudioPlayer.js"></script>
+    <script>
+        // test image for web notifications
+        var iconImage = null;
+
+        AP.init({
+            container:'#player',//a string containing one CSS selector
+            volume   : 0.1,
+            autoPlay : true,
+            notification: false,
+            playList: JSON.parse(localStorage.getItem("playList")) || [
+			{'icon': iconImage, 'title': 'let-it-go', 'file': 'test/let-it-go.mp3', 'score':1,},
+          ]
+        });
+    </script>
+    <!-- Audio player js end-->
+
+</body>  
+</html>
