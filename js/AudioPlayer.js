@@ -239,6 +239,8 @@ var AudioPlayer = (function() {
   nextSongButton,
   prevSongButton,
   repeatOnOffButton,
+  volbox,
+  vol_bar,
   //currentPlaying,
   progressBar,
   preloadBar,
@@ -262,7 +264,7 @@ var AudioPlayer = (function() {
   // settings
   settings = {
     container: 'body',
-    volume   : 0.1,
+    volume   : 0.1, /*default sound level 10%*/
     autoPlay : false,
     notification: false,
     playList : [],
@@ -321,8 +323,10 @@ var AudioPlayer = (function() {
     prevBtn.addEventListener('click', prev, false);
     nextBtn.addEventListener('click', next, false);
 
-
-
+	volbox = document.getElementById('volbox');
+	volbox.addEventListener('mousemove', handleMoveVol,false);
+	volbox.addEventListener('dblclick',volumeToggle,false);
+	vol_bar = document.getElementById('vol_bar');
 
 	playOnOffButton = document.getElementById('playorpause');
 	playOnOffButton.addEventListener('click',playOnOffButtonAction,false);
@@ -404,6 +408,7 @@ var AudioPlayer = (function() {
     audio.src = playList[index].file;
     audio.preload = 'auto';
     trackTitle.innerHTML = playList[index].title;
+
     volumeBar.style.height = audio.volume * 100 + '%';
     volumeLength = volumeBar.css('height');
 
@@ -681,11 +686,15 @@ var AudioPlayer = (function() {
       }
       audio.muted = false;
       this.classList.remove('muted');
+	  vol_bar.textContent = 'Sound Level: '+(audio.volume * 100).toFixed(2) + '%';
+	  volbox.addEventListener('mousemove', handleMoveVol,false);
     }
     else {
       audio.muted = true;
       volumeBar.style.height = 0;
       this.classList.add('muted');
+	  vol_bar.textContent = 'Muted; Double Click to Unmute';
+	  volbox.removeEventListener('mousemove', handleMoveVol,false);
     }
   }
 
@@ -899,6 +908,21 @@ var AudioPlayer = (function() {
     setVolume(evt);
   }
 
+  function handleMoveVol(evt){
+      const x = evt.pageX - this.offsetLeft;
+      const percent = x / this.offsetWidth;
+      const min = 0;
+      const max = 1;
+      const width = Math.round(percent * 100) + '%';
+	  const height = Math.round(percent * 100) + '%';
+      const playVolume = percent * (max - min) + min;
+      vol_bar.style.width = width;
+      vol_bar.textContent = 'Sound Level: '+(percent * 100).toFixed(2) + '%';
+      audio.volume = playVolume;
+	  volumeBar.style.height = height;
+  }	  
+
+
   function seek(evt) {
     if(seeking && rightClick === false && audio.readyState !== 0) {
       var value = moveBar(evt, progressBar, 'horizontal');
@@ -913,16 +937,21 @@ var AudioPlayer = (function() {
   function setVolume(evt) {
     volumeLength = volumeBar.css('height');
     if(seeking && rightClick === false) {
-      var value = moveBar(evt, volumeBar.parentNode, 'vertical') / 100;
+      var value = moveBar(evt, volumeBar.parentNode, 'vertical') / 100;  
       if(value <= 0) {
         audio.volume = 0;
         volumeBtn.classList.add('muted');
+		volbox.removeEventListener('mousemove', handleMoveVol,false);		
       }
       else {
         if(audio.muted) audio.muted = false;
         audio.volume = value;
         volumeBtn.classList.remove('muted');
+		volbox.addEventListener('mousemove', handleMoveVol,false);
       }
+	  const width = Math.round(value * 100) + '%';
+	  vol_bar.style.width = width;
+	  vol_bar.textContent = 'Sound Level:'+(value * 100).toFixed(2) + '%';
     }
   }
 
@@ -975,7 +1004,8 @@ var AudioPlayer = (function() {
 	prevSongButton.removeEventListener('click',prevSongButtonAction,false);
 	repeatOnOffButton.removeEventListener('click',repeatOnOffButtonAction,false);
 	repeatBtn.removeEventListener('click', flipRepeatStatus, false);
-
+	volbox.removeEventListener('mousemove', handleMoveVol,false);
+	volbox.removeEventListener('dblclick',volumeToggle,false);
 
     playBtn.removeEventListener('click', playToggle, false);
     volumeBtn.removeEventListener('click', volumeToggle, false);
