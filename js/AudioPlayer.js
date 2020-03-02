@@ -1,5 +1,6 @@
 
 
+
 /* 	function gotocurrentPlaying(index){
 		plLi[index].scrollIntoView();
 	} */
@@ -144,6 +145,7 @@
 		localStorage.setItem("playList",JSON.stringify(playList));
 	}
 
+  
 
 
 
@@ -241,6 +243,8 @@ var AudioPlayer = (function() {
   repeatOnOffButton,
   volbox,
   vol_bar,
+  volumeBarLockButton,
+  volumeBarLockText,
   //currentPlaying,
   progressBar,
   preloadBar,
@@ -258,6 +262,7 @@ var AudioPlayer = (function() {
   seeking = false,
   rightClick = false,
   apActive = false,
+  volumebarlocked = false,
   // playlist vars
   pl,
   plLi,
@@ -389,7 +394,11 @@ var AudioPlayer = (function() {
 	filterNumber = document.getElementById("filterNumber").value;
 	filterUnpopularSongButton = document.getElementById('filterUnpopularSong');
 	filterUnpopularSongButton.removeEventListener('click', filterSongList, false);
-	filterUnpopularSongButton.addEventListener('click', filterSongList, false);
+  filterUnpopularSongButton.addEventListener('click', filterSongList, false);
+  
+  volumeBarLockButton = document.getElementById("lockvolumebar");
+  volumeBarLockText = document.getElementById("lockvolumebar text2");
+  volumeBarLockButton.addEventListener('click',lockVolumeBar,false);
 
     // Create playlist
     renderPL();
@@ -431,7 +440,7 @@ var AudioPlayer = (function() {
     function renderPL() {
       var html = [];
       var tpl =
-        '<li data-track="{count}">'+
+        '<li data-track="{count}" draggable="true">'+
           '<div class="pl-number">'+
             '<div class="pl-count">'+
               '<i class="material-icons">audiotrack</i>'+
@@ -473,15 +482,97 @@ var AudioPlayer = (function() {
       pl = create('div', {
         'className': 'pl-container hide',
         'id': 'pl',
-        'innerHTML': !isEmptyList() ? '<ul class="pl-list">' + html.join('') + '</ul>' : '<div class="pl-empty">PlayList is empty</div>'
+        'innerHTML': !isEmptyList() ? '<ul class="pl-list">' + html.join('') + '</ul>' : '<div class="pl-empty">PlayList is empty</div>',
       });
 
       player.parentNode.insertBefore(pl, player.nextSibling);
 
       plLi = pl.querySelectorAll('li');
-
       pl.addEventListener('click', listHandler, false);
+      // function drake(el) { 
+      //   dragula({
+      //   isContainer: function (el) {
+      //     return el.tagName==='li';
+      //   }
+      // })};
+
+      // drake({ containers: plLi });
+
+      var boxArray = document.getElementsByClassName("pl-list");  
+      var boxes = Array.prototype.slice.call(boxArray);
+      
+
+      const reorderArray = (originalArray, oldIndex, newIndex) => {
+        const movedItem = originalArray.find((item, index) => index === oldIndex);
+        const remainingItems = originalArray.filter((item, index) => index !== oldIndex);
+      
+        const reorderedItems = [
+            ...remainingItems.slice(0, newIndex),
+            movedItem,
+            ...remainingItems.slice(newIndex)
+        ];
+      
+        return reorderedItems;
+      }
+
+    function range(start, end) {
+      return Array(end - start + 1).fill().map((_, idx) => start + idx)
     }
+    
+    var old_plLi = Object.keys(plLi).map(i => plLi[i]);
+    
+    var drake = dragula({ containers: boxes });
+      
+ /*   drake.on('drop', function (el, target, source, sibling) {
+        var move_from_obj_index = parseInt(el.getAttribute("data-track"));
+        var move_to_obj_index = parseInt(sibling.getAttribute("data-track"));
+        if (move_from_obj_index<move_to_obj_index){
+          move_to_obj_index = move_to_obj_index -1
+        }
+        console.log(move_from_obj_index);
+        console.log(move_to_obj_index);
+
+        var indexList = range(0, plLi.length-1);
+        var reorderedIndexList = reorderArray(indexList, move_from_obj_index, move_to_obj_index);
+        console.log(indexList);
+        console.log(reorderedIndexList);
+
+          plLi.forEach((el, i) => {
+              if(i < move_to_obj_index || i <=  move_from_obj_index){
+                el.setAttribute("data-track", reorderedIndexList[i]);
+              }
+          }); 
+          });*/
+        
+        drake.on('drop', function (el, target, source, sibling) {
+          
+          var old_audio_time = audio.currentTime;
+          console.log(old_audio_time)
+          audio.pause();
+          
+          var move_from_obj_index = parseInt(el.getAttribute("data-track"));
+          var move_to_obj_index = parseInt(sibling.getAttribute("data-track"));
+          if (move_from_obj_index<move_to_obj_index){
+            move_to_obj_index = move_to_obj_index -1
+          }
+          playList = reorderArray(playList, move_from_obj_index, move_to_obj_index);
+          scoreList = reorderArray(scoreList, move_from_obj_index, move_to_obj_index);
+
+          plLi = document.querySelectorAll('li');
+          var indexList = range(0, plLi.length-1);
+          plLi.forEach((el, i) => {
+            el.setAttribute("data-track", indexList[i]);
+            }
+          )
+          var oldIndex = index;
+          index = old_plLi.findIndex((el, index) => parseInt(el.getAttribute("data-track")) === oldIndex);
+          audio.currentTime = old_audio_time;
+          audio.play();
+        
+      })
+    }
+    
+    
 	
 
 
@@ -500,7 +591,7 @@ var AudioPlayer = (function() {
             var isDel = parseInt(target.parentNode.getAttribute('data-track'), 10);
 
             playList.splice(isDel, 1);
-			scoreList.splice(isDel, 1);
+			      scoreList.splice(isDel, 1);
             target.parentNode.parentNode.removeChild(target.parentNode);
 
             plLi = pl.querySelectorAll('li');
@@ -577,7 +668,6 @@ var AudioPlayer = (function() {
       }
       plLi[current].classList.add('pl-current');
     }
-
 
 /**
  *  Player methods
@@ -686,8 +776,10 @@ var AudioPlayer = (function() {
       }
       audio.muted = false;
       this.classList.remove('muted');
-	  vol_bar.textContent = 'Sound Level: '+(audio.volume * 100).toFixed(2) + '%';
-	  volbox.addEventListener('mousemove', handleMoveVol,false);
+    vol_bar.textContent = 'Sound Level: '+(audio.volume * 100).toFixed(2) + '%';
+      if(!volumebarlocked){
+        volbox.addEventListener('mousemove', handleMoveVol,false);
+      }
     }
     else {
       audio.muted = true;
@@ -835,8 +927,22 @@ var AudioPlayer = (function() {
 			//scoreElement.textContent=scoreList[i].toString();
 		}
       });
+    quickSave(playList);
+    if (vol_bar.textContent === 'Muted; Double Click to Unmute'){
+      var vol_bar_muted = true;
+    }
+    var old_volume_level = audio.volume;
+    var old_volumebarlocked = volumebarlocked;
 	  destroy();
-	  init();
+    init();
+    audio.volume = old_volume_level;
+    
+    if (vol_bar_muted){
+      volumeToggle();
+    }
+
+    volumebarlocked = !old_volumebarlocked;
+    lockVolumeBar();
 /* 	  if (PlayStatus){
 		playBtn.click();  
 	  } */
@@ -875,6 +981,22 @@ var AudioPlayer = (function() {
   function repeatOnOffButtonAction(){
 	repeatBtn.click();  
 	flipRepeatStatus();
+  }
+
+  function lockVolumeBar(){
+    volumebarlocked = !volumebarlocked;
+    if (volumebarlocked){
+      volbox.removeEventListener('mousemove', handleMoveVol,false);
+      volumeBar.parentNode.parentNode.removeEventListener('mousedown', handlerVol, false);
+      volumeBar.parentNode.parentNode.removeEventListener('mousemove', setVolume);
+      volumeBarLockText.textContent = "Unlock Volume Bar";
+    }
+    else{
+      volbox.addEventListener('mousemove', handleMoveVol,false);
+      volumeBar.parentNode.parentNode.addEventListener('mousedown', handlerVol, false);
+      volumeBar.parentNode.parentNode.addEventListener('mousemove', setVolume);
+      volumeBarLockText.textContent = "Lock Volume Bar";
+    }
   }
 
 
@@ -921,7 +1043,7 @@ var AudioPlayer = (function() {
       audio.volume = playVolume;
 	  volumeBar.style.height = height;
   }	  
-
+ 
 
   function seek(evt) {
     if(seeking && rightClick === false && audio.readyState !== 0) {
@@ -1019,6 +1141,7 @@ var AudioPlayer = (function() {
     volumeBar.parentNode.parentNode.removeEventListener('mousedown', handlerVol, false);
     volumeBar.parentNode.parentNode.removeEventListener('mousemove', setVolume);
     document.documentElement.removeEventListener('mouseup', seekingFalse, false);
+    volumeBarLockButton.removeEventListener('click',lockVolumeBar,false);
 
     prevBtn.removeEventListener('click', prev, false);
     nextBtn.removeEventListener('click', next, false);
