@@ -440,7 +440,7 @@ var AudioPlayer = (function() {
     function renderPL() {
       var html = [];
       var tpl =
-        '<li data-track="{count}" draggable="true">'+
+        '<li data-track="{count}">'+
           '<div class="pl-number">'+
             '<div class="pl-count">'+
               '<i class="material-icons">audiotrack</i>'+
