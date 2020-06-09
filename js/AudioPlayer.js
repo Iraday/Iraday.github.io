@@ -30,7 +30,7 @@
 		
 		function flipRandomStatus(){
 			RandomStatus=!RandomStatus;
-			console.log(RandomStatus);
+			//console.log(RandomStatus);
 			if (!RandomStatus){
 				RandomDisplay.classList.remove("container1");
 				RandomDisplay.classList.add("container2");
@@ -86,7 +86,7 @@
 
 		function flipPlayStatus(){
 			PlayStatus=!PlayStatus;
-			console.log(PlayStatus);
+			//console.log(PlayStatus);
 			if (PlayStatus){
 				PlayDisplay.classList.remove("container5");
 				PlayDisplay.classList.add("container6");
@@ -136,9 +136,9 @@
 
 	function exportAsJson(playList){
 		localStorage.setItem("playList",JSON.stringify(playList));
-		console.log('export step 1 done');
+		//console.log('export step 1 done');
 		download(JSON.stringify(playList), './test.txt', 'text/plain');
-		console.log('export step 2 done');
+		//console.log('export step 2 done');
 	}
 
 	function quickSave(playList){
@@ -255,6 +255,7 @@ var AudioPlayer = (function() {
   index = 0,
   playList,
   scoreList,
+  lastSongArray = [],
   lastSongIndex = 0,
   volumeBar,
   volumeLength,
@@ -547,7 +548,7 @@ var AudioPlayer = (function() {
         drake.on('drop', function (el, target, source, sibling) {
           
           var old_audio_time = audio.currentTime;
-          console.log(old_audio_time)
+          //console.log(old_audio_time)
           audio.pause();
           
           var move_from_obj_index = parseInt(el.getAttribute("data-track"));
@@ -631,7 +632,7 @@ var AudioPlayer = (function() {
 			  playList[isVote].score=scoreList[isVote];
 			  let scoreElement=pl.getElementsByClassName('pl-score')[isVote];
 			  scoreElement.textContent=scoreList[isVote].toString();
-			  console.log(scoreList)
+			  //console.log(scoreList)
 		  }
 		  else if(target.className === 'pl-minus'){
 			  let isVote = parseInt(target.parentNode.getAttribute('data-track'), 10);
@@ -640,15 +641,15 @@ var AudioPlayer = (function() {
 				  scoreList[isVote]=scoreList[isVote]-1;  
 			  }
 			  else{
-				  console.log("score cannot go negative");
+				  //console.log("score cannot go negative");
 			  }
 			  playList[isVote].score=scoreList[isVote];
 			  let scoreElement=pl.getElementsByClassName('pl-score')[isVote];
-			  console.log('pl');
-			  console.log(pl);
-			  console.log(scoreElement);
+			  //console.log('pl');
+			  //console.log(pl);
+			  //console.log(scoreElement);
 			  scoreElement.textContent=scoreList[isVote].toString();
-			  console.log(scoreList)
+			  //console.log(scoreList)
 		  }		  
 		  
           target = target.parentNode;
@@ -707,11 +708,27 @@ var AudioPlayer = (function() {
 	  flipPlayStatus();
 	}	
 	
+	if(lastSongArray.length>1000){
+		lastSongArray.shift();
+	}
+	lastSongArray.push(parseInt(index, 10));	
+	//console.log(lastSongArray);
   }
 
   function prev() {
+	if(lastSongArray.length > 1){
+		lastSongIndex = lastSongArray[lastSongArray.length-2];		
+		lastSongArray.pop();
+		//console.log(lastSongIndex);
+	}
+	else if (lastSongArray.length === 1){
+		lastSongIndex = lastSongArray[lastSongArray.length-1];
+		lastSongArray.pop();
+		//console.log(lastSongIndex);
+	}
     index = lastSongIndex;
-	console.log("previous song");
+	//console.log("previous song");
+	lastSongArray.pop();
     play();
   }
 
@@ -725,6 +742,9 @@ var AudioPlayer = (function() {
 	console.log(drawResult); */
 	if (RandomStatus){
 		index=drawResult;
+	}
+	if (lastSongArray.length ===0){
+		lastSongArray.push(parseInt(0,10));
 	}
     play();
   }
@@ -845,7 +865,6 @@ var AudioPlayer = (function() {
         //index = 0;
         //play();
 		next();  //play the next random one
-		
       //}
     }
     else {
